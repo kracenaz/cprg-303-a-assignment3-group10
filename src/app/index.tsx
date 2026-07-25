@@ -1,50 +1,90 @@
-import { Link } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { signOut } from "firebase/auth";
+import { useState } from "react";
+import {
+  Alert,
+  Button,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-export default function Index() {
+import { auth } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
+
+export default function HomeScreen() {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  async function handleSignOut() {
+    try {
+      setLoading(true);
+
+      await signOut(auth);
+
+      router.replace("/sign-in");
+    } catch (error: any) {
+      Alert.alert(
+        "Sign Out Failed",
+        error.message || "Unable to sign out."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.container}>
-        <Text style={styles.title}>Choose one of the following options:</Text>
-        <Text> </Text>
-        <Link style={styles.buttons} href="/emp-info">
-          Enter Employee Information
-        </Link>
-        <Link style={styles.buttons} href="/sign-in">
-          Sign In
-        </Link>
-        <Link style={styles.buttons} href="/sign-up">
-          Sign Up
-        </Link>
+    <View style={styles.container}>
+      <Text style={styles.title}>Home</Text>
+
+      <Text style={styles.label}>Signed in as</Text>
+
+      <Text style={styles.email}>
+        {user?.email ?? "No email available"}
+      </Text>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="Employee Information"
+          onPress={() => router.push("/emp-info")}
+        />
       </View>
-    </SafeAreaView>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title={loading ? "Signing Out..." : "Sign Out"}
+          onPress={handleSignOut}
+          disabled={loading}
+        />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: "center",
+    padding: 24,
     justifyContent: "center",
   },
   title: {
+    fontSize: 30,
     fontWeight: "bold",
-    fontSize: 20,
+    marginBottom: 30,
+    textAlign: "center",
   },
-  buttons: {
-    padding: 10,
-    paddingLeft: 10,
-    paddingRight: 10,
-    color: "white",
-    backgroundColor: "darkblue",
-    justifyContent: "center",
-    marginBottom: 10,
-    borderRadius: 5,
+  label: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 8,
   },
-  buttonSection: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 10,
+  email: {
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 30,
+  },
+  buttonContainer: {
+    marginBottom: 15,
   },
 });
