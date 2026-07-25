@@ -22,6 +22,7 @@ function RootNavigator() {
     }
 
     const currentRoute = segments[0];
+
     const isOnAuthScreen =
       currentRoute === "sign-in" ||
       currentRoute === "sign-up";
