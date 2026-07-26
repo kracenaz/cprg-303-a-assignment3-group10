@@ -1,3 +1,5 @@
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Formik } from "formik";
 import {
   Alert,
@@ -11,6 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Yup from "yup";
+import { auth, db } from "../config/firebase";
 
 const Employee = Yup.object({
   firstName: Yup.string()
@@ -43,12 +46,35 @@ export default function EmployeeInformation() {
           }}
           validationSchema={Employee}
           validateOnMount
-          onSubmit={(values, { resetForm }) => {
-            Alert.alert(
-              "Employee information for",
-              `${values.firstName} ${values.lastName} has been submitted`,
-            );
-            resetForm();
+          onSubmit={async (values, { resetForm }) => {
+            try {
+              // TEMP DEV ONLY: sign in with test account for local testing.
+              // Remove once M2 ships real sign-in screen.
+              // if (!auth.currentUser) {
+              //   await signInWithEmailAndPassword(
+              //     auth,
+              //     "ahmed@test.com",
+              //     "test123456",
+              //   );
+              // }
+
+              const uid = auth.currentUser?.uid;
+              if (!uid) throw new Error("Not signed in");
+
+              await addDoc(collection(db, "emp"), {
+                ...values,
+                user: uid,
+                createdAt: serverTimestamp(),
+              });
+
+              Alert.alert(
+                "Saved!",
+                `${values.firstName} ${values.lastName} has been saved`,
+              );
+              resetForm();
+            } catch (error: any) {
+              Alert.alert("Error", error.message);
+            }
           }}
         >
           {({
@@ -60,6 +86,7 @@ export default function EmployeeInformation() {
             handleSubmit,
             setFieldValue,
             isValid,
+            isSubmitting,
           }) => (
             <View>
               <Text>First Name</Text>
@@ -99,7 +126,9 @@ export default function EmployeeInformation() {
                 <Text>Worked here for more than 1 year?</Text>
                 <Switch
                   value={values.overOneYear}
-                  onValueChange={(value) => setFieldValue("overOneYear", value)}
+                  onValueChange={(value: boolean): void => {
+                    setFieldValue("overOneYear", value);
+                  }}
                 />
               </View>
               <Text>Role</Text>
@@ -114,9 +143,9 @@ export default function EmployeeInformation() {
                 <Text style={styles.error}>{errors.role}</Text>
               )}
               <Button
-                title="Submit"
+                title={isSubmitting ? "Saving..." : "Submit"}
                 onPress={() => handleSubmit()}
-                disabled={!isValid}
+                disabled={!isValid || isSubmitting}
               />
             </View>
           )}
