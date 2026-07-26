@@ -1,13 +1,7 @@
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
 import { useState } from "react";
-import {
-  Alert,
-  Button,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Button, StyleSheet, Text, View } from "react-native";
 
 import { auth } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
@@ -24,10 +18,7 @@ export default function HomeScreen() {
 
       router.replace("/sign-in");
     } catch (error: any) {
-      Alert.alert(
-        "Sign Out Failed",
-        error.message || "Unable to sign out."
-      );
+      Alert.alert("Sign Out Failed", error.message || "Unable to sign out.");
     } finally {
       setLoading(false);
     }
@@ -39,14 +30,19 @@ export default function HomeScreen() {
 
       <Text style={styles.label}>Signed in as</Text>
 
-      <Text style={styles.email}>
-        {user?.email ?? "No email available"}
-      </Text>
+      <Text style={styles.email}>{user?.email ?? "No email available"}</Text>
 
       <View style={styles.buttonContainer}>
         <Button
           title="Employee Information"
           onPress={() => router.push("/emp-info")}
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title="View Submissions"
+          onPress={() => router.push("/emp-list")}
         />
       </View>
 
